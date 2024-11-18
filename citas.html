@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citas de Usuarios</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .regresar-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Botón Regresar en la esquina superior derecha -->
+    <button class="btn btn-primary regresar-btn" onclick="window.location.href='admin.html'">Regresar</button>
+
+    <div class="container mt-5">
+        <h2>Citas de Usuarios</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID Usuario</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Fecha Cita</th>
+                    <th>Motivo</th>
+                    <th>Estado</th>
+                    <th>Comentario</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="citas-lista">
+                <!-- Aquí se cargarán los usuarios y sus citas -->
+            </tbody>
+        </table>
+    </div>
+  <!-- Modal para editar Cita -->
+    <div class="modal fade" id="editarCitaModal" tabindex="-1" role="dialog" aria-labelledby="editarCitaModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarCitaModalLabel">Editar Cita</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulario de edición de la cita -->
+                    <form id="form-editar-cita">
+                        <input type="hidden" id="cita_id" name="cita_id">
+                        <div class="form-group">
+                            <label for="fecha_cita">Fecha Cita</label>
+                            <input type="datetime-local" class="form-control" id="fecha_cita" name="fecha_cita" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="motivo">Motivo</label>
+                            <input type="text" class="form-control" id="motivo" name="motivo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="estado">Estado</label>
+                            <select class="form-control" id="estado" name="estado">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="comentario">Comentario</label>
+                            <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarEdicion()">Guardar cambios</button>
+                </div>
+            </div>
+        </div>
+ </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función para obtener usuarios y citas
+        function obtenerCitas() {
+            $.ajax({
+                url: 'get_citas.php', // Archivo PHP para obtener las citas y los usuarios
+                method: 'GET',
+                success: function(response) {
+                    $('#citas-lista').html(response);
+                }
+            });
+        }
+
+        // Llamada para cargar los usuarios y las citas al cargar la página
+        $(document).ready(function() {
+            obtenerCitas();
+        });
+
+        // Función para abrir el modal de edición y cargar los datos de la cita
+        function editarCita(cita_id, id_usuario, fecha_cita, motivo, estado, comentario) {
+            // Rellenar el formulario con los datos actuales de la cita
+            $('#cita_id').val(cita_id);
+            $('#fecha_cita').val(fecha_cita);
+            $('#motivo').val(motivo);
+            $('#estado').val(estado);
+            $('#comentario').val(comentario);
+
+            // Mostrar el modal de edición
+            $('#editarCitaModal').modal('show');
+        }
+  // Función para guardar los cambios de la cita
+        function guardarEdicion() {
+            var datos = $('#form-editar-cita').serialize(); // Serializa el formulario
+
+            $.ajax({
+                url: 'update_cita.php', // Archivo PHP para actualizar la cita
+                method: 'POST',
+                data: datos,
+                success: function(response) {
+                    alert(response);
+                    $('#editarCitaModal').modal('hide'); // Cerrar el modal
+                    obtenerCitas(); // Recargar la lista de citas
+                }
+            });
+        }
+
+        // Función para eliminar una cita
+        function eliminarCita(cita_id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta cita?')) {
+                $.ajax({
+                    url: 'delete_cita.php',
+                    method: 'POST',
+                    data: { cita_id: cita_id },
+                    success: function(response) {
+                        alert(response);
+                        obtenerCitas(); // Recargar la lista después de eliminar
+                    }
+                });
+            }
+        }
+    </script>
+
+</body>
+</html>
+
